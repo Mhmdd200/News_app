@@ -4,9 +4,10 @@ from user_app.api.serializers import RegistrationSerializer, DetailSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.core.exceptions import ObjectDoesNotExist
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def registration_views(request):
     if request.method == 'POST':
         serializer = RegistrationSerializer(data = request.data)
