@@ -12,6 +12,6 @@ class getArticleSerializer(serializers.ModelSerializer):
     author = AuthorSerializer(read_only=True)
     class Meta:
         model = Article
-        fields = "__all__"
+        fields = '__all__'
 
         
