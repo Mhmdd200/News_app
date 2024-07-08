@@ -1,7 +1,7 @@
 from django.db import models
 class Author(models.Model):
     name = models.CharField(max_length=100)
-    bio = models.TextField
+    bio = models.TextField(default="this is a default value")
     email = models.EmailField(unique=True)
     profile_picture_url = models.URLField(null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
