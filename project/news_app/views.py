@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from news_app.filters import ArticleFilter
 from rest_framework import mixins
-from django_filters import rest_framework as filters
+from news_app.pagination import ArticlePagination
 class AuthorView(viewsets.ViewSet):
     def get_permissions(self):
         if self.action == 'list':
@@ -43,6 +43,7 @@ class ArticleView(
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = ArticlePagination
     search_fields = ['title', 'summary', 'slug']
     filterset_class = ArticleFilter
     def create(self, request, *args, **kwargs):
