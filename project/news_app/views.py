@@ -1,3 +1,4 @@
+from argparse import Action
 from django.shortcuts import render
 from news_app.models import Article, Author, Category, Comment
 from django.shortcuts import get_object_or_404
@@ -9,29 +10,44 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from news_app.filters import ArticleFilter
 from rest_framework import mixins
 from news_app.pagination import ArticlePagination
-class AuthorView(viewsets.ViewSet):
-    def get_permissions(self):
-        if self.action == 'list':
-            return [AllowAny()]
-        return [IsAuthenticated()]
-    def list(self, request):
-        author = Author.objects.all()
-        serializer = AuthorSerializer(author,many=True)
+from rest_framework.decorators import action
+from django.db.models import Count, Q
+class AuthorView(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+    permission_classes = [IsAuthenticated]
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs) 
+    @action(methods=['get'], detail=False, url_path='popular_authors')
+    def get_popular_authors(self, request):
+        popular_author_ids = Article.objects.filter(view_count__gt=10)\
+            .values('author')\
+            .annotate(author_count = Count('id'))\
+            .filter(author_count__gt = 5)\
+            .values_list('author')
+        popular_authors = Author.objects.filter(id__in=popular_author_ids)
+        serializer = AuthorSerializer(popular_authors, many=True)
         return Response(serializer.data)
-    def retrieve(self, request, pk=None):
-        author = get_object_or_404(Author, pk=pk)
-        serializer = AuthorSerializer(author)
-        return Response(serializer.data)
-    def create(self, request):
-        serializer = AuthorSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response("Error creating author!", status=status.HTTP_405_METHOD_NOT_ALLOWED)
-    def destroy(self, request, pk=None):
-        author = get_object_or_404(Author, pk=pk)
-        author.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        
 class ArticleView(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
